@@ -59,12 +59,12 @@ python run.py
 
 **Option 2: As a Python module**
 ```bash
-python -m tasacion_portal
+uv run python -m tasacion_portal
 ```
 
 **Option 3: Install and use CLI command**
 ```bash
-pip install -e .
+uv pip install -e .
 tasacion
 ```
 
