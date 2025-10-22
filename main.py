@@ -1,55 +1,152 @@
 """
-Main script - chains scraping and data processing
+Complete Analysis Pipeline - Main Entry Point
+Runs the entire workflow from data scraping to final PDF report
 """
 
+import sys
 from scraper import PortalInmobiliarioScraper
 import process_data
 import pandas as pd
+from datetime import datetime
 
 
-def main():
-    print("=" * 60)
-    print("Portal Inmobiliario - Scraper & Processor")
-    print("=" * 60)
+def print_step(step_num, total_steps, description):
+    """Print formatted step header"""
+    print("\n" + "="*70)
+    print(f"STEP {step_num}/{total_steps}: {description}")
+    print("="*70)
 
-    # Step 1: Scrape the data
-    print("\n[STEP 1/2] SCRAPING DATA")
-    print("-" * 60)
+
+def step1_scrape_data():
+    """Step 1: Scrape property data from Portal Inmobiliario"""
+    print_step(1, 5, "DATA COLLECTION")
 
     url = "https://www.portalinmobiliario.com/venta/departamento"
+    print(f"\nScraping data from: {url}")
+
     scraper = PortalInmobiliarioScraper(url)
-
-    # Scrape multiple pages
     scraper.scrape(max_pages=50)
-
-    # Save raw data
     scraper.save_to_csv('data.csv')
 
-    # Step 2: Process the data
-    print("\n[STEP 2/2] PROCESSING DATA")
-    print("-" * 60)
+    print(f"\n✓ Step 1 complete: {len(scraper.properties)} properties scraped")
+    return len(scraper.properties)
 
-    # Read the raw data
+
+def step2_process_data():
+    """Step 2: Clean and process the scraped data"""
+    print_step(2, 5, "DATA PROCESSING")
+
+    print("\nReading raw data...")
     df = pd.read_csv('data.csv')
     print(f"Loaded {len(df)} rows")
 
-    # Process the data
+    print("\nProcessing data...")
     df_processed = process_data.process_dataframe(df)
 
-    # Save processed data
+    print("\nSaving processed data...")
     df_processed.to_csv('data.csv', index=False, encoding='utf-8-sig')
-    print(f"\n✓ Final data saved to data.csv")
 
-    # Show summary
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print(f"Total properties: {len(df_processed)}")
-    print(f"\nData types:")
-    print(df_processed.dtypes)
-    print(f"\nSample data:")
-    print(df_processed[['price', 'bedrooms', 'bathrooms', 'surface_useful']].head())
-    print("\n✓ Pipeline complete!")
+    print(f"\n✓ Step 2 complete: Data cleaned and processed")
+    return len(df_processed)
+
+
+def step3_train_models():
+    """Step 3: Train and evaluate regression models"""
+    print_step(3, 5, "MODEL TRAINING")
+
+    print("\nTraining models (this may take a few minutes)...")
+
+    # Import and run train_models
+    import train_models
+    train_models.main()
+
+    print(f"\n✓ Step 3 complete: Models trained and evaluated")
+
+
+def step4_explain_model():
+    """Step 4: Generate SHAP and LIME explanations"""
+    print_step(4, 5, "MODEL INTERPRETABILITY")
+
+    print("\nGenerating SHAP and LIME explanations...")
+
+    # Import and run explain_model
+    import explain_model
+    explain_model.main()
+
+    print(f"\n✓ Step 4 complete: Model explanations generated")
+
+
+def step5_generate_report():
+    """Step 5: Create comprehensive PDF report"""
+    print_step(5, 5, "REPORT GENERATION")
+
+    print("\nGenerating comprehensive PDF report...")
+
+    # Import and run generate_report
+    import generate_report
+    generate_report.main()
+
+    print(f"\n✓ Step 5 complete: PDF report created")
+
+
+def main():
+    """Run the complete analysis pipeline"""
+    start_time = datetime.now()
+
+    print("\n" + "="*70)
+    print("PROPERTY PRICE ANALYSIS - COMPLETE PIPELINE")
+    print("="*70)
+    print(f"Started: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print("\nThis pipeline will execute 5 steps:")
+    print("  1. Data Collection (web scraping)")
+    print("  2. Data Processing (cleaning & transformation)")
+    print("  3. Model Training (5 regression models)")
+    print("  4. Model Interpretability (SHAP & LIME)")
+    print("  5. Report Generation (PDF with plots)")
+    print("\nEstimated time: 5-10 minutes")
+
+    input("\nPress ENTER to start the pipeline...")
+
+    try:
+        # Step 1: Scrape data
+        properties_count = step1_scrape_data()
+
+        # Step 2: Process data
+        clean_count = step2_process_data()
+
+        # Step 3: Train models
+        step3_train_models()
+
+        # Step 4: Explain model
+        step4_explain_model()
+
+        # Step 5: Generate report
+        step5_generate_report()
+
+        # Summary
+        end_time = datetime.now()
+        duration = (end_time - start_time).total_seconds()
+
+        print("\n" + "="*70)
+        print("✓ PIPELINE COMPLETE!")
+        print("="*70)
+        print(f"\nExecution time: {duration/60:.1f} minutes")
+        print(f"\nFinal outputs:")
+        print(f"  • data.csv ({clean_count} clean records from {properties_count} scraped)")
+        print(f"  • model_results.csv (5 models compared)")
+        print(f"  • shap_values.csv, shap_*.png (SHAP analysis)")
+        print(f"  • lime_explanations.csv, lime_*.png (LIME analysis)")
+        print(f"  • property_price_analysis_report_*.pdf (comprehensive report)")
+        print(f"\n🎉 All done! Check the PDF report for complete findings.")
+
+    except KeyboardInterrupt:
+        print("\n\n⚠ Pipeline interrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n\n❌ Pipeline failed: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
