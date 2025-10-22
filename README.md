@@ -79,11 +79,11 @@ The complete workflow consists of 5 sequential steps:
 
 | Step | Script | Description | Output |
 |------|--------|-------------|--------|
-| 1 | `scraper.py` | Scrapes property listings from Portal Inmobiliario | `data.csv` (raw) |
-| 2 | `process_data.py` | Cleans and transforms data | `data.csv` (clean) |
-| 3 | `train_models.py` | Trains 5 regression models | `model_results.csv` |
-| 4 | `explain_model.py` | Generates SHAP & LIME explanations | `shap_*.csv/png`, `lime_*.csv/png` |
-| 5 | `generate_report.py` | Creates comprehensive PDF report | `property_price_analysis_report_YYYYMMDD.pdf` |
+| 1 | `scraper.py` | Scrapes property listings from Portal Inmobiliario | `data/raw/data.csv` |
+| 2 | `process_data.py` | Cleans and transforms data | `data/processed/data.csv` |
+| 3 | `train_models.py` | Trains 5 regression models | `outputs/data/model_results.csv` |
+| 4 | `explain_model.py` | Generates SHAP & LIME explanations | `outputs/data/*.csv`, `outputs/plots/*.png` |
+| 5 | `generate_report.py` | Creates comprehensive PDF report | `outputs/reports/*.pdf` |
 
 ### Run Individual Steps (Optional)
 
@@ -91,19 +91,19 @@ If needed, you can run specific steps separately:
 
 ```bash
 # Step 1: Data collection only
-uv run python scraper.py
+uv run python -m tasacion_portal.scraper
 
 # Step 2: Data processing only
-uv run python process_data.py
+uv run python -m tasacion_portal.process_data
 
 # Step 3: Model training only
-uv run python train_models.py
+uv run python -m tasacion_portal.train_models
 
 # Step 4: Model interpretability only
-uv run python explain_model.py
+uv run python -m tasacion_portal.explain_model
 
 # Step 5: PDF report generation only
-uv run python generate_report.py
+uv run python -m tasacion_portal.generate_report
 ```
 
 **Note**: Steps must be run in order as each depends on outputs from previous steps.
@@ -232,7 +232,7 @@ All dependencies are automatically installed with `uv sync`.
 
 ### Change Scraping Parameters
 
-Edit `main.py` or `scraper.py`:
+Edit `src/tasacion_portal/main.py` or `src/tasacion_portal/scraper.py`:
 
 ```python
 # Scrape more pages
@@ -247,7 +247,7 @@ scraper.save_to_csv('my_data.csv')
 
 ### Adjust Model Parameters
 
-Edit `train_models.py`:
+Edit `src/tasacion_portal/train_models.py`:
 
 ```python
 # Change random seed

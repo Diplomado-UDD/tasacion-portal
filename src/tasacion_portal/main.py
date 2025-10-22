@@ -118,8 +118,16 @@ def main():
     input("\nPress ENTER to start the pipeline...")
 
     try:
-        # Step 1: Scrape data
-        properties_count = step1_scrape_data()
+        # Step 1: Scrape data (skip if already exists)
+        raw_data_path = PROJECT_ROOT / 'data' / 'raw' / 'data.csv'
+        if raw_data_path.exists():
+            print_step(1, 5, "DATA COLLECTION")
+            print(f"\n⚠️  Raw data already exists at {raw_data_path}")
+            print("Skipping Step 1 (scraping). Delete the file to re-scrape.")
+            properties_count = len(pd.read_csv(raw_data_path))
+            print(f"\n✓ Step 1 skipped: Using existing {properties_count} properties")
+        else:
+            properties_count = step1_scrape_data()
 
         # Step 2: Process data
         clean_count = step2_process_data()
