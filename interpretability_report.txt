@@ -1,0 +1,48 @@
+============================================================
+MODEL INTERPRETABILITY REPORT
+Best Model: Linear Regression
+============================================================
+
+--- SHAP ANALYSIS ---
+
+Feature Importance (based on mean |SHAP value|):
+  surface_useful: 4651.33
+  bathrooms: 1246.53
+  bedrooms: 833.22
+
+Interpretation:
+  - Higher values indicate greater impact on price predictions
+  - SHAP values show the contribution of each feature to the prediction
+
+--- LIME ANALYSIS ---
+
+Analyzed 5 sample predictions:
+  Average absolute error: 2492.60 UF
+  Average predicted price: 14565.69 UF
+
+Average Feature Contributions (LIME):
+  bedrooms: 1483.16
+  bathrooms: -1541.74
+  surface_useful: -4411.14
+
+--- KEY INSIGHTS ---
+
+1. Most Important Feature:
+   surface_useful (SHAP importance: 4651.33)
+
+2. Model Behavior:
+   - Linear model provides consistent, interpretable predictions
+   - Feature contributions are additive and transparent
+
+3. Files Generated:
+   SHAP:
+     - shap_values.csv: All SHAP values for test set
+     - shap_feature_importance.csv: Feature importance ranking
+     - shap_summary_plot.png: Visual summary of feature impacts
+     - shap_bar_plot.png: Feature importance bar chart
+     - shap_waterfall_sample_*.png: Individual prediction breakdowns
+   LIME:
+     - lime_explanations.csv: Detailed explanations for samples
+     - lime_explanation_sample_*.png: Visual explanations
+
+============================================================
