@@ -55,8 +55,20 @@ uv sync
 
 Execute the entire analysis with a single command:
 
+**Option 1: Using the run script (Simple)**
 ```bash
-uv run python main.py
+python run.py
+```
+
+**Option 2: As a Python module**
+```bash
+python -m tasacion_portal
+```
+
+**Option 3: Install and use CLI command**
+```bash
+pip install -e .
+tasacion
 ```
 
 This will run all 5 steps automatically (takes ~5-10 minutes).
@@ -142,36 +154,67 @@ Comprehensive report including:
 
 ## Output Files
 
-After running the complete pipeline:
+After running the complete pipeline, outputs are organized in the following structure:
 
 ```
-data.csv                                      # Clean property data
-model_results.csv                             # Model performance metrics
-shap_values.csv                               # SHAP values for test set
-shap_feature_importance.csv                   # Feature importance ranking
-shap_summary_plot.png                         # SHAP summary visualization
-shap_bar_plot.png                             # Feature importance bar chart
-shap_waterfall_sample_*.png                   # Individual prediction breakdowns
-lime_explanations.csv                         # LIME explanations
-lime_explanation_sample_*.png                 # LIME visualizations
-interpretability_report.txt                   # Text summary
-property_price_analysis_report_YYYYMMDD.pdf   # Final comprehensive report
+data/
+├── raw/data.csv                              # Raw scraped data
+└── processed/data.csv                        # Clean property data
+
+outputs/
+├── data/
+│   ├── model_results.csv                     # Model performance metrics
+│   ├── shap_values.csv                       # SHAP values for test set
+│   ├── shap_feature_importance.csv           # Feature importance ranking
+│   └── lime_explanations.csv                 # LIME explanations
+├── plots/
+│   ├── data_summary_plot.png                 # Data exploration
+│   ├── model_comparison_plot.png             # Model performance
+│   ├── feature_importance_comparison.png     # Feature importance
+│   ├── shap_summary_plot.png                 # SHAP summary
+│   ├── shap_bar_plot.png                     # Feature importance bar chart
+│   ├── shap_waterfall_sample_*.png           # Individual predictions
+│   └── lime_explanation_sample_*.png         # LIME visualizations
+└── reports/
+    ├── interpretability_report.txt           # Text summary
+    └── property_price_analysis_report_YYYYMMDD.pdf  # Final PDF report
 ```
 
 ## Project Structure
 
 ```
 tasacion-portal/
-├── .python-version              # Python version (3.12)
-├── pyproject.toml               # Dependencies
-├── main.py                      # Complete pipeline (recommended entry point)
-├── scraper.py                   # Web scraper (Step 1)
-├── process_data.py              # Data processing (Step 2)
-├── train_models.py              # Model training (Step 3)
-├── explain_model.py             # SHAP & LIME explanations (Step 4)
-├── generate_report.py           # PDF report generator (Step 5)
-├── run_pipeline.py              # Alternative pipeline entry point
-└── README.md                    # This file
+├── .python-version                    # Python version (3.12)
+├── .gitignore                         # Git ignore rules
+├── pyproject.toml                     # Project configuration & dependencies
+├── README.md                          # This file
+├── STRUCTURE.md                       # Structure documentation
+├── run.py                             # Simple run script (recommended)
+│
+├── src/tasacion_portal/               # Source code (package)
+│   ├── __init__.py                    # Package initialization
+│   ├── __main__.py                    # Module entry point
+│   ├── main.py                        # Complete pipeline orchestration
+│   ├── scraper.py                     # Web scraper (Step 1)
+│   ├── process_data.py                # Data processing (Step 2)
+│   ├── train_models.py                # Model training (Step 3)
+│   ├── explain_model.py               # SHAP & LIME (Step 4)
+│   └── generate_report.py             # PDF generator (Step 5)
+│
+├── data/                              # Data directory
+│   ├── raw/                           # Raw scraped data
+│   │   └── data.csv
+│   └── processed/                     # Cleaned data
+│       └── data.csv
+│
+├── outputs/                           # Generated outputs
+│   ├── data/                          # CSVs (model results, etc.)
+│   ├── plots/                         # PNG visualizations
+│   ├── reports/                       # PDF reports
+│   └── models/                        # Saved models
+│
+└── tests/                             # Unit tests
+    └── .gitkeep
 ```
 
 ## Dependencies

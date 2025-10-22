@@ -5,6 +5,7 @@ Trains multiple regression models to predict property prices
 
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Lasso, Ridge
 from sklearn.ensemble import RandomForestRegressor
@@ -14,15 +15,18 @@ from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings('ignore')
 
+# Get project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # Fixed random seed for reproducibility
 RANDOM_SEED = 42
 
 
-def load_and_prepare_data(filename='data.csv'):
+def load_and_prepare_data(filename='data/processed/data.csv'):
     """Load and prepare the data for modeling"""
     print("Loading data...")
-    df = pd.read_csv(filename)
+    filepath = PROJECT_ROOT / filename
+    df = pd.read_csv(filepath)
 
     print(f"Initial data shape: {df.shape}")
 
@@ -193,9 +197,11 @@ def print_feature_importance(models, feature_names):
                 print(f"  {feature}: {importance:.4f}")
 
 
-def save_results(results_df, filename='model_results.csv'):
+def save_results(results_df, filename='outputs/data/model_results.csv'):
     """Save results to CSV"""
-    results_df.to_csv(filename, index=False)
+    filepath = PROJECT_ROOT / filename
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    results_df.to_csv(filepath, index=False)
     print(f"\n✓ Results saved to {filename}")
 
 
@@ -252,7 +258,7 @@ def main():
     print_summary(results_df)
 
     # Save results
-    save_results(results_df, 'model_results.csv')
+    save_results(results_df, 'outputs/data/model_results.csv')
 
     print("\n" + "="*60)
     print("✓ Training complete!")

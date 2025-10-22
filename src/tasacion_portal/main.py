@@ -4,10 +4,15 @@ Runs the entire workflow from data scraping to final PDF report
 """
 
 import sys
-from scraper import PortalInmobiliarioScraper
-import process_data
+import os
+from pathlib import Path
+from .scraper import PortalInmobiliarioScraper
+from . import process_data
 import pandas as pd
 from datetime import datetime
+
+# Get project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 
 def print_step(step_num, total_steps, description):
@@ -26,7 +31,10 @@ def step1_scrape_data():
 
     scraper = PortalInmobiliarioScraper(url)
     scraper.scrape(max_pages=50)
-    scraper.save_to_csv('data.csv')
+
+    # Save to data/raw directory
+    raw_data_path = PROJECT_ROOT / 'data' / 'raw' / 'data.csv'
+    scraper.save_to_csv(str(raw_data_path))
 
     print(f"\n✓ Step 1 complete: {len(scraper.properties)} properties scraped")
     return len(scraper.properties)
@@ -37,14 +45,16 @@ def step2_process_data():
     print_step(2, 5, "DATA PROCESSING")
 
     print("\nReading raw data...")
-    df = pd.read_csv('data.csv')
+    raw_data_path = PROJECT_ROOT / 'data' / 'raw' / 'data.csv'
+    df = pd.read_csv(raw_data_path)
     print(f"Loaded {len(df)} rows")
 
     print("\nProcessing data...")
     df_processed = process_data.process_dataframe(df)
 
     print("\nSaving processed data...")
-    df_processed.to_csv('data.csv', index=False, encoding='utf-8-sig')
+    processed_data_path = PROJECT_ROOT / 'data' / 'processed' / 'data.csv'
+    df_processed.to_csv(processed_data_path, index=False, encoding='utf-8-sig')
 
     print(f"\n✓ Step 2 complete: Data cleaned and processed")
     return len(df_processed)
@@ -57,7 +67,7 @@ def step3_train_models():
     print("\nTraining models (this may take a few minutes)...")
 
     # Import and run train_models
-    import train_models
+    from . import train_models
     train_models.main()
 
     print(f"\n✓ Step 3 complete: Models trained and evaluated")
@@ -70,7 +80,7 @@ def step4_explain_model():
     print("\nGenerating SHAP and LIME explanations...")
 
     # Import and run explain_model
-    import explain_model
+    from . import explain_model
     explain_model.main()
 
     print(f"\n✓ Step 4 complete: Model explanations generated")
@@ -83,7 +93,7 @@ def step5_generate_report():
     print("\nGenerating comprehensive PDF report...")
 
     # Import and run generate_report
-    import generate_report
+    from . import generate_report
     generate_report.main()
 
     print(f"\n✓ Step 5 complete: PDF report created")
@@ -132,12 +142,12 @@ def main():
         print("="*70)
         print(f"\nExecution time: {duration/60:.1f} minutes")
         print(f"\nFinal outputs:")
-        print(f"  • data.csv ({clean_count} clean records from {properties_count} scraped)")
-        print(f"  • model_results.csv (5 models compared)")
-        print(f"  • shap_values.csv, shap_*.png (SHAP analysis)")
-        print(f"  • lime_explanations.csv, lime_*.png (LIME analysis)")
-        print(f"  • property_price_analysis_report_*.pdf (comprehensive report)")
-        print(f"\n🎉 All done! Check the PDF report for complete findings.")
+        print(f"  • data/raw/data.csv (raw data)")
+        print(f"  • data/processed/data.csv ({clean_count} clean records from {properties_count} scraped)")
+        print(f"  • outputs/data/model_results.csv (5 models compared)")
+        print(f"  • outputs/plots/shap_*.png, lime_*.png (visualizations)")
+        print(f"  • outputs/reports/property_price_analysis_report_*.pdf (final report)")
+        print(f"\n🎉 All done! Check the PDF report in outputs/reports/ for complete findings.")
 
     except KeyboardInterrupt:
         print("\n\n⚠ Pipeline interrupted by user")
