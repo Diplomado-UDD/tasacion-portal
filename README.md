@@ -44,10 +44,7 @@ uv --version
 #### 2. Install Project Dependencies
 
 ```bash
-# Navigate to project directory
-cd tasacion-portal
-
-# Install all dependencies
+# From the project root directory, install all dependencies
 uv sync
 ```
 
