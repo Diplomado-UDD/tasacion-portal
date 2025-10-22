@@ -231,7 +231,7 @@ def main():
     print("="*60)
 
     # Load and prepare data
-    X, y = load_and_prepare_data('data.csv')
+    X, y = load_and_prepare_data()  # Uses default: 'data/processed/data.csv'
 
     # Split data
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(X, y)

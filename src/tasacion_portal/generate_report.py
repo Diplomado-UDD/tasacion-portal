@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
+from pathlib import Path
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
@@ -18,6 +19,9 @@ import os
 import warnings
 warnings.filterwarnings('ignore')
 
+# Get project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
 # Set style
 sns.set_style('whitegrid')
 plt.rcParams['figure.dpi'] = 300
@@ -25,7 +29,7 @@ plt.rcParams['figure.dpi'] = 300
 
 def create_data_summary_plot():
     """Create data summary visualizations"""
-    df = pd.read_csv('data.csv')
+    df = pd.read_csv(PROJECT_ROOT / 'data/processed/data.csv')
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     fig.suptitle('Data Summary - Property Characteristics', fontsize=16, fontweight='bold')
@@ -69,14 +73,16 @@ def create_data_summary_plot():
                     verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
     plt.tight_layout()
-    plt.savefig('data_summary_plot.png', dpi=300, bbox_inches='tight')
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'data_summary_plot.png'
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close()
     print("✓ Data summary plot created")
 
 
 def create_model_comparison_plot():
     """Create model performance comparison plot"""
-    results_df = pd.read_csv('model_results.csv')
+    results_df = pd.read_csv(PROJECT_ROOT / 'outputs/data/model_results.csv')
     test_results = results_df[results_df['set'] == 'test'].copy()
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -112,14 +118,16 @@ def create_model_comparison_plot():
                     va='center', ha='left', fontsize=9)
 
     plt.tight_layout()
-    plt.savefig('model_comparison_plot.png', dpi=300, bbox_inches='tight')
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'model_comparison_plot.png'
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close()
     print("✓ Model comparison plot created")
 
 
 def create_metrics_table_plot():
     """Create a detailed metrics comparison table"""
-    results_df = pd.read_csv('model_results.csv')
+    results_df = pd.read_csv(PROJECT_ROOT / 'outputs/data/model_results.csv')
     test_results = results_df[results_df['set'] == 'test'].copy()
     test_results = test_results.sort_values('rmse')
 
@@ -154,7 +162,9 @@ def create_metrics_table_plot():
         table[(1, i)].set_facecolor('#D5E8D4')
 
     plt.title('Detailed Model Performance Metrics (Test Set)', fontsize=14, fontweight='bold', pad=20)
-    plt.savefig('metrics_table_plot.png', dpi=300, bbox_inches='tight')
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'metrics_table_plot.png'
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close()
     print("✓ Metrics table plot created")
 
@@ -162,7 +172,7 @@ def create_metrics_table_plot():
 def create_feature_importance_comparison():
     """Create comparison of feature importance across methods"""
     # Load SHAP importance
-    shap_df = pd.read_csv('shap_feature_importance.csv')
+    shap_df = pd.read_csv(PROJECT_ROOT / 'outputs/data/shap_feature_importance.csv')
 
     # Get model coefficients (Linear Regression)
     # We'll need to recalculate or load from model training
@@ -197,7 +207,9 @@ def create_feature_importance_comparison():
     axes[1].set_title('Relative Feature Contribution', fontsize=12, fontweight='bold')
 
     plt.tight_layout()
-    plt.savefig('feature_importance_comparison.png', dpi=300, bbox_inches='tight')
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'feature_importance_comparison.png'
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close()
     print("✓ Feature importance comparison created")
 
@@ -208,7 +220,9 @@ def build_pdf_report():
 
     # Create PDF
     pdf_filename = f'property_price_analysis_report_{datetime.now().strftime("%Y%m%d")}.pdf'
-    doc = SimpleDocTemplate(pdf_filename, pagesize=letter,
+    pdf_path = PROJECT_ROOT / 'outputs' / 'reports' / pdf_filename
+    pdf_path.parent.mkdir(parents=True, exist_ok=True)
+    doc = SimpleDocTemplate(str(pdf_path), pagesize=letter,
                            topMargin=0.75*inch, bottomMargin=0.75*inch,
                            leftMargin=0.75*inch, rightMargin=0.75*inch)
 
@@ -255,8 +269,8 @@ def build_pdf_report():
     )
 
     # Load data for statistics
-    df = pd.read_csv('data.csv')
-    results_df = pd.read_csv('model_results.csv')
+    df = pd.read_csv(PROJECT_ROOT / 'data/processed/data.csv')
+    results_df = pd.read_csv(PROJECT_ROOT / 'outputs/data/model_results.csv')
     test_results = results_df[results_df['set'] == 'test'].sort_values('rmse')
     best_model = test_results.iloc[0]
 
@@ -358,8 +372,9 @@ def build_pdf_report():
     ))
     elements.append(Spacer(1, 0.2*inch))
 
-    if os.path.exists('data_summary_plot.png'):
-        img = Image('data_summary_plot.png', width=6.5*inch, height=5.4*inch)
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'data_summary_plot.png'
+    if plot_path.exists():
+        img = Image(str(plot_path), width=6.5*inch, height=5.4*inch)
         elements.append(img)
 
     # Data statistics
@@ -409,14 +424,16 @@ def build_pdf_report():
     ))
     elements.append(Spacer(1, 0.2*inch))
 
-    if os.path.exists('model_comparison_plot.png'):
-        img = Image('model_comparison_plot.png', width=6.5*inch, height=2.9*inch)
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'model_comparison_plot.png'
+    if plot_path.exists():
+        img = Image(str(plot_path), width=6.5*inch, height=2.9*inch)
         elements.append(img)
 
     elements.append(Spacer(1, 0.2*inch))
 
-    if os.path.exists('metrics_table_plot.png'):
-        img = Image('metrics_table_plot.png', width=6.5*inch, height=3.5*inch)
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'metrics_table_plot.png'
+    if plot_path.exists():
+        img = Image(str(plot_path), width=6.5*inch, height=3.5*inch)
         elements.append(img)
 
     elements.append(PageBreak())
@@ -437,14 +454,16 @@ def build_pdf_report():
     ))
     elements.append(Spacer(1, 0.2*inch))
 
-    if os.path.exists('feature_importance_comparison.png'):
-        img = Image('feature_importance_comparison.png', width=6.5*inch, height=2.9*inch)
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'feature_importance_comparison.png'
+    if plot_path.exists():
+        img = Image(str(plot_path), width=6.5*inch, height=2.9*inch)
         elements.append(img)
 
     elements.append(Spacer(1, 0.2*inch))
 
-    if os.path.exists('shap_summary_plot.png'):
-        img = Image('shap_summary_plot.png', width=5.5*inch, height=3.5*inch)
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'shap_summary_plot.png'
+    if plot_path.exists():
+        img = Image(str(plot_path), width=5.5*inch, height=3.5*inch)
         elements.append(img)
 
     elements.append(PageBreak())
@@ -458,8 +477,9 @@ def build_pdf_report():
     elements.append(Spacer(1, 0.2*inch))
 
     # Include one LIME example
-    if os.path.exists('lime_explanation_sample_1.png'):
-        img = Image('lime_explanation_sample_1.png', width=5.5*inch, height=3.5*inch)
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'lime_explanation_sample_1.png'
+    if plot_path.exists():
+        img = Image(str(plot_path), width=5.5*inch, height=3.5*inch)
         elements.append(img)
 
     elements.append(PageBreak())
@@ -516,7 +536,7 @@ def build_pdf_report():
 
     # Build PDF
     doc.build(elements)
-    print(f"\n✓ PDF report generated: {pdf_filename}")
+    print(f"\n✓ PDF report generated: {pdf_path}")
     return pdf_filename
 
 

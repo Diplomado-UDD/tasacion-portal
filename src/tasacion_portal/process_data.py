@@ -5,6 +5,10 @@ Cleans and processes the scraped property data from data.csv
 
 import pandas as pd
 import re
+from pathlib import Path
+
+# Get project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 
 def process_price(price_str: str) -> float:
@@ -101,8 +105,9 @@ def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def main():
     # Read the raw data
-    print("Reading data.csv...")
-    df = pd.read_csv('data.csv')
+    raw_data_path = PROJECT_ROOT / 'data' / 'raw' / 'data.csv'
+    print(f"Reading {raw_data_path}...")
+    df = pd.read_csv(raw_data_path)
 
     print(f"Loaded {len(df)} rows")
     print(f"Columns: {list(df.columns)}")
@@ -127,9 +132,10 @@ def main():
     print(df_processed[['price', 'bedrooms', 'bathrooms', 'surface_total', 'surface_useful']].describe())
 
     # Save processed data
-    output_file = 'data.csv'
-    df_processed.to_csv(output_file, index=False, encoding='utf-8-sig')
-    print(f"\n✓ Processed data saved to {output_file}")
+    output_path = PROJECT_ROOT / 'data' / 'processed' / 'data.csv'
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    df_processed.to_csv(output_path, index=False, encoding='utf-8-sig')
+    print(f"\n✓ Processed data saved to {output_path}")
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ Generates interpretability reports for the best regression model
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
@@ -14,14 +15,18 @@ from lime import lime_tabular
 import warnings
 warnings.filterwarnings('ignore')
 
+# Get project root directory
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
 # Fixed random seed for reproducibility
 RANDOM_SEED = 42
 
 
-def load_and_prepare_data(filename='data.csv'):
+def load_and_prepare_data(filename='data/processed/data.csv'):
     """Load and prepare the data"""
     print("Loading data...")
-    df = pd.read_csv(filename)
+    filepath = PROJECT_ROOT / filename
+    df = pd.read_csv(filepath)
 
     feature_cols = ['bedrooms', 'bathrooms', 'surface_useful']
     target_col = 'price'
@@ -99,8 +104,10 @@ def generate_shap_explanations(model, X_train_scaled, X_test_scaled, feature_nam
     print(f"SHAP values shape: {shap_values.shape}")
 
     # Save SHAP values
-    shap_df.to_csv('shap_values.csv', index=False)
-    print("✓ SHAP values saved to shap_values.csv")
+    shap_path = PROJECT_ROOT / 'outputs' / 'data' / 'shap_values.csv'
+    shap_path.parent.mkdir(parents=True, exist_ok=True)
+    shap_df.to_csv(shap_path, index=False)
+    print("✓ SHAP values saved to outputs/data/shap_values.csv")
 
     # Calculate and print mean absolute SHAP values (feature importance)
     mean_abs_shap = np.abs(shap_values).mean(axis=0)
@@ -113,17 +120,20 @@ def generate_shap_explanations(model, X_train_scaled, X_test_scaled, feature_nam
     for _, row in importance_df.iterrows():
         print(f"  {row['feature']}: {row['mean_abs_shap']:.2f}")
 
-    importance_df.to_csv('shap_feature_importance.csv', index=False)
-    print("✓ Feature importance saved to shap_feature_importance.csv")
+    importance_path = PROJECT_ROOT / 'outputs' / 'data' / 'shap_feature_importance.csv'
+    importance_df.to_csv(importance_path, index=False)
+    print("✓ Feature importance saved to outputs/data/shap_feature_importance.csv")
 
     # Generate SHAP summary plot
     print("\nGenerating SHAP summary plot...")
     plt.figure(figsize=(10, 6))
     shap.summary_plot(shap_values, X_test_scaled, feature_names=feature_names, show=False)
     plt.tight_layout()
-    plt.savefig('shap_summary_plot.png', dpi=300, bbox_inches='tight')
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'shap_summary_plot.png'
+    plot_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close()
-    print("✓ SHAP summary plot saved to shap_summary_plot.png")
+    print("✓ SHAP summary plot saved to outputs/plots/shap_summary_plot.png")
 
     # Generate SHAP bar plot
     print("Generating SHAP bar plot...")
@@ -131,9 +141,10 @@ def generate_shap_explanations(model, X_train_scaled, X_test_scaled, feature_nam
     shap.summary_plot(shap_values, X_test_scaled, feature_names=feature_names,
                       plot_type="bar", show=False)
     plt.tight_layout()
-    plt.savefig('shap_bar_plot.png', dpi=300, bbox_inches='tight')
+    plot_path = PROJECT_ROOT / 'outputs' / 'plots' / 'shap_bar_plot.png'
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close()
-    print("✓ SHAP bar plot saved to shap_bar_plot.png")
+    print("✓ SHAP bar plot saved to outputs/plots/shap_bar_plot.png")
 
     # Generate waterfall plot for a few samples
     print("Generating SHAP waterfall plots for sample predictions...")
@@ -147,7 +158,8 @@ def generate_shap_explanations(model, X_train_scaled, X_test_scaled, feature_nam
         )
         shap.waterfall_plot(shap_exp, show=False)
         plt.tight_layout()
-        plt.savefig(f'shap_waterfall_sample_{i+1}.png', dpi=300, bbox_inches='tight')
+        plot_path = PROJECT_ROOT / 'outputs' / 'plots' / f'shap_waterfall_sample_{i+1}.png'
+        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         plt.close()
     print(f"✓ SHAP waterfall plots saved (3 samples)")
 
@@ -219,15 +231,17 @@ def generate_lime_explanations(model, scaler, X_train, X_test, y_test, feature_n
         fig.set_size_inches(10, 6)
         plt.title(f'LIME Explanation - Sample {i+1}\nActual: {actual_price:.0f} UF, Predicted: {predicted_price:.0f} UF')
         plt.tight_layout()
-        plt.savefig(f'lime_explanation_sample_{i+1}.png', dpi=300, bbox_inches='tight')
+        plot_path = PROJECT_ROOT / 'outputs' / 'plots' / f'lime_explanation_sample_{i+1}.png'
+        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         plt.close()
 
         print(f"  Sample {i+1}: Actual={actual_price:.0f} UF, Predicted={predicted_price:.0f} UF, Error={result['error']:.0f} UF")
 
     # Save LIME results to CSV
     lime_df = pd.DataFrame(lime_results)
-    lime_df.to_csv('lime_explanations.csv', index=False)
-    print(f"\n✓ LIME explanations saved to lime_explanations.csv")
+    lime_path = PROJECT_ROOT / 'outputs' / 'data' / 'lime_explanations.csv'
+    lime_df.to_csv(lime_path, index=False)
+    print(f"\n✓ LIME explanations saved to outputs/data/lime_explanations.csv")
     print(f"✓ LIME visualizations saved ({n_samples} samples)")
 
     return lime_df
@@ -247,7 +261,8 @@ def create_summary_report(shap_importance, lime_df, feature_names):
 
     report.append("\n--- SHAP ANALYSIS ---")
     report.append("\nFeature Importance (based on mean |SHAP value|):")
-    shap_df = pd.read_csv('shap_feature_importance.csv')
+    shap_path = PROJECT_ROOT / 'outputs' / 'data' / 'shap_feature_importance.csv'
+    shap_df = pd.read_csv(shap_path)
     for _, row in shap_df.iterrows():
         report.append(f"  {row['feature']}: {row['mean_abs_shap']:.2f}")
 
@@ -294,10 +309,12 @@ def create_summary_report(shap_importance, lime_df, feature_names):
     report_text = "\n".join(report)
     print(report_text)
 
-    with open('interpretability_report.txt', 'w') as f:
+    report_path = PROJECT_ROOT / 'outputs' / 'reports' / 'interpretability_report.txt'
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(report_path, 'w') as f:
         f.write(report_text)
 
-    print("\n✓ Full report saved to interpretability_report.txt")
+    print("\n✓ Full report saved to outputs/reports/interpretability_report.txt")
 
 
 def main():
@@ -307,7 +324,7 @@ def main():
     print("="*60)
 
     # Load and prepare data
-    X, y = load_and_prepare_data('data.csv')
+    X, y = load_and_prepare_data()  # Uses default: 'data/processed/data.csv'
 
     # Split data
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(X, y)
