@@ -19,6 +19,30 @@ This project provides an end-to-end solution for:
 
 ### Installation
 
+#### 1. Install uv
+
+**On Linux/macOS/GitHub Codespaces:**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+**On Windows (PowerShell):**
+```powershell
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**Alternative (using pip):**
+```bash
+pip install uv
+```
+
+**Verify installation:**
+```bash
+uv --version
+```
+
+#### 2. Install Project Dependencies
+
 ```bash
 # Navigate to project directory
 cd tasacion-portal
