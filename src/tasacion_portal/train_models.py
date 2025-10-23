@@ -10,6 +10,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Lasso, Ridge
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
+from catboost import CatBoostRegressor
+from lightgbm import LGBMRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler
 import warnings
@@ -114,6 +116,21 @@ def train_models(X_train, y_train):
             learning_rate=0.1,
             random_state=RANDOM_SEED,
             n_jobs=-1
+        ),
+        'CatBoost': CatBoostRegressor(
+            n_estimators=100,
+            max_depth=6,
+            learning_rate=0.1,
+            random_state=RANDOM_SEED,
+            verbose=False
+        ),
+        'LightGBM': LGBMRegressor(
+            n_estimators=100,
+            max_depth=6,
+            learning_rate=0.1,
+            random_state=RANDOM_SEED,
+            n_jobs=-1,
+            verbose=-1
         )
     }
 

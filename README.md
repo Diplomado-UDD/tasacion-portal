@@ -7,7 +7,7 @@ A complete machine learning pipeline for scraping, analyzing, and predicting apa
 This project provides an end-to-end solution for:
 - **Data Collection**: Automated web scraping of property listings
 - **Data Processing**: Intelligent cleaning and transformation
-- **Machine Learning**: Training and comparing 5 regression models
+- **Machine Learning**: Training and comparing 7 regression models
 - **Interpretability**: SHAP and LIME explanations
 - **Reporting**: Comprehensive PDF report with visualizations
 
@@ -78,7 +78,7 @@ The complete workflow consists of 5 sequential steps:
 |------|--------|-------------|--------|
 | 1 | `scraper.py` | Scrapes property listings from Portal Inmobiliario | `data/raw/data.csv` |
 | 2 | `process_data.py` | Cleans and transforms data | `data/processed/data.csv` |
-| 3 | `train_models.py` | Trains 5 regression models | `outputs/data/model_results.csv` |
+| 3 | `train_models.py` | Trains 7 regression models | `outputs/data/model_results.csv` |
 | 4 | `explain_model.py` | Generates SHAP & LIME explanations | `outputs/data/*.csv`, `outputs/plots/*.png` |
 | 5 | `generate_report.py` | Creates comprehensive PDF report | `outputs/reports/*.pdf` |
 
@@ -116,13 +116,15 @@ uv run python -m tasacion_portal.generate_report
 
 ### Machine Learning Models
 
-Five regression models trained and compared:
+Seven regression models trained and compared:
 
 1. **Linear Regression** - Baseline with interpretable coefficients
 2. **Lasso Regression** - L1 regularization for feature selection
 3. **Ridge Regression** - L2 regularization to prevent overfitting
 4. **Random Forest** - Ensemble of decision trees
 5. **XGBoost** - Gradient boosting with regularization
+6. **CatBoost** - Gradient boosting optimized for categorical features
+7. **LightGBM** - Fast gradient boosting with leaf-wise tree growth
 
 **Evaluation Metrics**: RMSE, MAE, R², MAPE
 
@@ -218,7 +220,7 @@ tasacion-portal/
 
 - **Web Scraping**: requests, beautifulsoup4, lxml
 - **Data Processing**: pandas, numpy
-- **Machine Learning**: scikit-learn, xgboost
+- **Machine Learning**: scikit-learn, xgboost, catboost, lightgbm
 - **Interpretability**: shap, lime
 - **Visualization**: matplotlib, seaborn
 - **Reporting**: reportlab
@@ -287,4 +289,4 @@ This is an educational project. Feel free to fork and adapt for your own learnin
 
 ---
 
-**Generated with**: Python 3.12, scikit-learn, XGBoost, SHAP, LIME
+**Generated with**: Python 3.12, scikit-learn, XGBoost, CatBoost, LightGBM, SHAP, LIME

@@ -327,7 +327,7 @@ def build_pdf_report():
     elements.append(Paragraph("1. Executive Summary", heading_style))
     elements.append(Paragraph(
         f"This report presents a comprehensive analysis of {len(df):,} apartment listings from Portal Inmobiliario, "
-        f"Chile's leading real estate platform. We developed and compared five machine learning regression models "
+        f"Chile's leading real estate platform. We developed and compared seven machine learning regression models "
         f"to predict property prices based on key features including number of bedrooms, bathrooms, and useful surface area.",
         body_style
     ))
@@ -411,7 +411,9 @@ def build_pdf_report():
         "• Lasso Regression - L1 regularization for feature selection",
         "• Ridge Regression - L2 regularization to prevent overfitting",
         "• Random Forest - Ensemble of decision trees",
-        "• XGBoost - Gradient boosting with advanced regularization"
+        "• XGBoost - Gradient boosting with advanced regularization",
+        "• CatBoost - Gradient boosting optimized for categorical features",
+        "• LightGBM - Fast gradient boosting with leaf-wise tree growth"
     ]
     for model in models_list:
         elements.append(Paragraph(model, body_style))
@@ -522,7 +524,7 @@ def build_pdf_report():
         f"<b>Total Properties Scraped:</b> {len(df):,}",
         f"<b>Properties After Cleaning:</b> {len(df[['bedrooms', 'bathrooms', 'surface_useful', 'price']].dropna()):,}",
         "<b>Programming Language:</b> Python 3.12",
-        "<b>Key Libraries:</b> scikit-learn, XGBoost, SHAP, LIME, pandas, matplotlib, seaborn",
+        "<b>Key Libraries:</b> scikit-learn, XGBoost, CatBoost, LightGBM, SHAP, LIME, pandas, matplotlib, seaborn",
         "<b>Model Training:</b> 70% train, 15% validation, 15% test (random_state=42)",
         "<b>Feature Scaling:</b> StandardScaler applied to all features",
         f"<b>Best Model:</b> {best_model['model']}",
