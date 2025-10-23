@@ -6,9 +6,9 @@ Best Model: Linear Regression
 --- SHAP ANALYSIS ---
 
 Feature Importance (based on mean |SHAP value|):
-  surface_useful: 46440.25
-  bathrooms: 12548.80
-  bedrooms: 8345.25
+  surface_useful: 37837.46
+  bathrooms: 12645.30
+  bedrooms: 7205.82
 
 Interpretation:
   - Higher values indicate greater impact on price predictions
@@ -17,18 +17,18 @@ Interpretation:
 --- LIME ANALYSIS ---
 
 Analyzed 5 sample predictions:
-  Average absolute error: 24910.82 UF
-  Average predicted price: 145691.75 UF
+  Average absolute error: 19613.34 UF
+  Average predicted price: 158561.50 UF
 
 Average Feature Contributions (LIME):
-  bedrooms: 14848.30
-  bathrooms: -15272.94
-  surface_useful: -44091.13
+  bedrooms: 4007.76
+  bathrooms: -7945.00
+  surface_useful: -22105.69
 
 --- KEY INSIGHTS ---
 
 1. Most Important Feature:
-   surface_useful (SHAP importance: 46440.25)
+   surface_useful (SHAP importance: 37837.46)
 
 2. Model Behavior:
    - Linear model provides consistent, interpretable predictions

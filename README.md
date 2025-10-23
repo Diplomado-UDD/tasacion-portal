@@ -2,6 +2,35 @@
 
 A complete machine learning pipeline for scraping, analyzing, and predicting apartment prices from [Portal Inmobiliario](https://www.portalinmobiliario.com), Chile's leading real estate platform.
 
+---
+
+## 🎓 Student Quick Start (GitHub Codespaces)
+
+**New to this project?** Follow these 3 steps:
+
+1. **Open in Codespaces**
+   - Click the green "Code" button → "Codespaces" → "Create codespace"
+   - Wait for automatic setup (~2 minutes)
+
+2. **Get the data** (choose one):
+   ```bash
+   # Option A: Scrape fresh data (~5 min)
+   python -m tasacion_portal.scraper
+
+   # Option B: Upload your data.csv to data/raw/ folder
+   ```
+
+3. **Run the pipeline**:
+   ```bash
+   python run.py
+   ```
+
+**That's it!** 🎉 Results will be in `outputs/reports/` folder.
+
+📖 **Need help?** Jump to [Troubleshooting](#troubleshooting)
+
+---
+
 ## Overview
 
 This project provides an end-to-end solution for:
@@ -13,15 +42,31 @@ This project provides an end-to-end solution for:
 
 ## Quick Start
 
-### Prerequisites
+### For GitHub Codespaces Users (Recommended for Students) ⭐
+
+**✨ Automatic Setup**: When you open this repository in Codespaces, dependencies will install automatically!
+
+**If auto-setup didn't run**, manually install:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env  # Activate uv in current session
+uv sync
+```
+
+**You're ready!** Skip to [Run Complete Pipeline](#run-complete-pipeline)
+
+---
+
+### For Local Installation
+
+#### Prerequisites
 - Python 3.12
 - [uv](https://docs.astral.sh/uv/) package manager
 
-### Installation
-
 #### 1. Install uv
 
-**On Linux/macOS/GitHub Codespaces:**
+**On Linux/macOS:**
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
@@ -103,7 +148,10 @@ uv run python -m tasacion_portal.explain_model
 uv run python -m tasacion_portal.generate_report
 ```
 
-**Note**: Steps must be run in order as each depends on outputs from previous steps.
+**Important Notes**:
+- Steps must be run in order as each depends on outputs from previous steps
+- **First time?** You must run Step 1 (scraper) OR upload your data file to `data/raw/data.csv` before running other steps
+- If you see `FileNotFoundError`, make sure you have the data file from Step 1
 
 ## Features
 
@@ -301,6 +349,123 @@ Based on the default configuration:
 - The pipeline automatically stops when reaching the last available page
 - All outputs use UTF-8 encoding to handle Spanish characters
 - Models use standardized features (StandardScaler)
+
+---
+
+## Troubleshooting
+
+### Common Issues in Codespaces
+
+#### ❌ Error: `ModuleNotFoundError: No module named 'xgboost'`
+
+**Cause**: Dependencies not installed
+
+**Solution**:
+```bash
+uv sync
+```
+
+If `uv` is not found, install it first:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+uv sync
+```
+
+---
+
+#### ❌ Error: `FileNotFoundError: [Errno 2] No such file or directory: '/workspaces/tasacion-portal/data/raw/data.csv'`
+
+**Cause**: Data file doesn't exist yet
+
+**Solutions**:
+
+**Option 1: Run the scraper** (creates fresh data - takes ~5 minutes):
+```bash
+# Create directories
+mkdir -p data/raw data/processed
+
+# Run scraper
+python -m tasacion_portal.scraper
+```
+
+**Option 2: Upload your existing data**:
+1. Create the directory: `mkdir -p data/raw`
+2. Upload your `data.csv` file to `data/raw/` folder in Codespaces
+3. Continue with processing
+
+---
+
+#### ❌ Error: `uv: command not found` after installation
+
+**Cause**: Terminal needs to reload environment
+
+**Solution**:
+```bash
+source $HOME/.local/bin/env
+```
+
+Or close and reopen the terminal.
+
+---
+
+#### ❌ Training takes too long (>10 minutes)
+
+**Cause**: Hyperparameter tuning is enabled
+
+**Solution**: Disable tuning in `src/tasacion_portal/train_models.py`:
+```python
+ENABLE_TUNING = False  # Line 27
+```
+
+Then re-run:
+```bash
+python -m tasacion_portal.train_models
+```
+
+---
+
+#### ❌ Error: `Permission denied` when creating directories
+
+**Cause**: Codespaces file permissions
+
+**Solution**:
+```bash
+# Fix permissions
+chmod -R u+w data/ outputs/
+
+# Create directories manually
+mkdir -p data/raw data/processed outputs/data outputs/plots outputs/reports
+```
+
+---
+
+### Quick Reset
+
+If things get messed up, reset everything:
+
+```bash
+# Remove generated files
+rm -rf data/ outputs/ .venv/
+
+# Reinstall dependencies
+uv sync
+
+# Run scraper to get fresh data
+mkdir -p data/raw
+python -m tasacion_portal.scraper
+```
+
+---
+
+### Getting Help
+
+1. **Check the error message carefully** - it usually tells you what's missing
+2. **Review IMPROVEMENTS.md** for configuration options
+3. **Make sure you ran `uv sync`** after cloning the repository
+4. **Verify you're in the project root** directory when running commands
+
+---
 
 ## License
 
