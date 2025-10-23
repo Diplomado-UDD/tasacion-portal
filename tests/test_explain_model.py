@@ -216,6 +216,10 @@ class TestGenerateLimeExplanations:
         scaler = StandardScaler().fit(X_train)
         feature_names = list(X_train.columns)
 
+        # Create necessary directories
+        (temp_test_dir / 'outputs' / 'data').mkdir(parents=True, exist_ok=True)
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
         # Mock explainer
         mock_explainer = Mock()
         mock_exp = Mock()
@@ -244,6 +248,10 @@ class TestGenerateLimeExplanations:
         model = LinearRegression().fit(X_train, y_train)
         scaler = StandardScaler().fit(X_train)
         feature_names = list(X_train.columns)
+
+        # Create necessary directories
+        (temp_test_dir / 'outputs' / 'data').mkdir(parents=True, exist_ok=True)
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
 
         # Mock explainer
         mock_explainer = Mock()

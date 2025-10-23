@@ -28,19 +28,23 @@ class TestCreateDataSummaryPlot:
         data_path.parent.mkdir(parents=True, exist_ok=True)
         sample_processed_data.to_csv(data_path, index=False)
 
+        # Create output directory
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
         # Mock matplotlib
         mock_fig = Mock()
         mock_axes = np.array([[Mock(), Mock()], [Mock(), Mock()]])
         mock_plt.subplots.return_value = (mock_fig, mock_axes)
         mock_plt.savefig = Mock()
         mock_plt.close = Mock()
+        mock_plt.tight_layout = Mock()
 
         with patch('tasacion_portal.generate_report.PROJECT_ROOT', temp_test_dir):
             create_data_summary_plot()
 
-            # Check that plot was saved
-            plot_path = temp_test_dir / 'outputs' / 'plots' / 'data_summary_plot.png'
-            assert plot_path.exists()
+            # Check that savefig was called
+            assert mock_plt.savefig.called
+            mock_plt.close.assert_called()
 
     @patch('tasacion_portal.generate_report.plt')
     def test_data_summary_plot_creates_subplots(self, mock_plt, temp_test_dir, sample_processed_data):
@@ -82,17 +86,29 @@ class TestCreateModelComparisonPlot:
         results_path.parent.mkdir(parents=True, exist_ok=True)
         results_df.to_csv(results_path, index=False)
 
-        # Mock matplotlib
+        # Create plots directory
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
+        # Mock matplotlib with proper barh return
         mock_fig = Mock()
-        mock_axes = np.array([Mock(), Mock()])
+        mock_ax1 = Mock()
+        mock_ax2 = Mock()
+        mock_bar = Mock()
+        mock_bar.get_y.return_value = 0
+        mock_bar.get_height.return_value = 1
+        mock_ax1.barh.return_value = [mock_bar, mock_bar, mock_bar]
+        mock_ax2.barh.return_value = [mock_bar, mock_bar, mock_bar]
+        mock_axes = np.array([mock_ax1, mock_ax2])
         mock_plt.subplots.return_value = (mock_fig, mock_axes)
+        mock_plt.savefig = Mock()
+        mock_plt.close = Mock()
+        mock_plt.tight_layout = Mock()
 
         with patch('tasacion_portal.generate_report.PROJECT_ROOT', temp_test_dir):
             create_model_comparison_plot()
 
-            # Check that plot was saved
-            plot_path = temp_test_dir / 'outputs' / 'plots' / 'model_comparison_plot.png'
-            assert plot_path.exists()
+            # Check that savefig was called
+            assert mock_plt.savefig.called
 
     @patch('tasacion_portal.generate_report.plt')
     def test_model_comparison_filters_test_set(self, mock_plt, temp_test_dir):
@@ -101,23 +117,37 @@ class TestCreateModelComparisonPlot:
             'model': ['Linear Regression', 'Linear Regression', 'Linear Regression'],
             'set': ['train', 'validation', 'test'],
             'rmse': [90.0, 95.0, 100.0],
-            'r2': [0.90, 0.87, 0.85]
+            'r2': [0.90, 0.87, 0.85],
+            'mae': [70.0, 75.0, 80.0],
+            'mape': [4.0, 5.0, 6.0]
         })
 
         results_path = temp_test_dir / 'outputs' / 'data' / 'model_results.csv'
         results_path.parent.mkdir(parents=True, exist_ok=True)
         results_df.to_csv(results_path, index=False)
 
+        # Create plots directory
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
         mock_fig = Mock()
-        mock_axes = np.array([Mock(), Mock()])
+        mock_ax1 = Mock()
+        mock_ax2 = Mock()
+        mock_bar = Mock()
+        mock_bar.get_y.return_value = 0
+        mock_bar.get_height.return_value = 1
+        mock_ax1.barh.return_value = [mock_bar]
+        mock_ax2.barh.return_value = [mock_bar]
+        mock_axes = np.array([mock_ax1, mock_ax2])
         mock_plt.subplots.return_value = (mock_fig, mock_axes)
+        mock_plt.savefig = Mock()
+        mock_plt.close = Mock()
+        mock_plt.tight_layout = Mock()
 
         with patch('tasacion_portal.generate_report.PROJECT_ROOT', temp_test_dir):
             create_model_comparison_plot()
 
-            # Should only use test set data
-            # Verify by checking that plot was created successfully
-            assert True  # If no exception, test passes
+            # Should only use test set data - verify it runs without error
+            assert mock_plt.savefig.called
 
 
 class TestCreateMetricsTablePlot:
@@ -139,18 +169,30 @@ class TestCreateMetricsTablePlot:
         results_path.parent.mkdir(parents=True, exist_ok=True)
         results_df.to_csv(results_path, index=False)
 
-        # Mock matplotlib
+        # Create plots directory
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
+        # Mock matplotlib with subscriptable table
         mock_fig = Mock()
         mock_ax = Mock()
+        mock_cell = Mock()
+        mock_cell.set_facecolor = Mock()
+        mock_cell.set_text_props = Mock()
         mock_table = Mock()
+        mock_table.__getitem__ = Mock(return_value=mock_cell)
+        mock_table.auto_set_font_size = Mock()
+        mock_table.set_fontsize = Mock()
+        mock_table.scale = Mock()
         mock_plt.subplots.return_value = (mock_fig, mock_ax)
         mock_ax.table.return_value = mock_table
+        mock_plt.title = Mock()
+        mock_plt.savefig = Mock()
+        mock_plt.close = Mock()
 
         with patch('tasacion_portal.generate_report.PROJECT_ROOT', temp_test_dir):
             create_metrics_table_plot()
 
-            plot_path = temp_test_dir / 'outputs' / 'plots' / 'metrics_table_plot.png'
-            assert plot_path.exists()
+            assert mock_plt.savefig.called
 
     @patch('tasacion_portal.generate_report.plt')
     def test_metrics_table_includes_all_metrics(self, mock_plt, temp_test_dir):
@@ -168,11 +210,24 @@ class TestCreateMetricsTablePlot:
         results_path.parent.mkdir(parents=True, exist_ok=True)
         results_df.to_csv(results_path, index=False)
 
+        # Create plots directory
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
         mock_fig = Mock()
         mock_ax = Mock()
+        mock_cell = Mock()
+        mock_cell.set_facecolor = Mock()
+        mock_cell.set_text_props = Mock()
         mock_table = Mock()
+        mock_table.__getitem__ = Mock(return_value=mock_cell)
+        mock_table.auto_set_font_size = Mock()
+        mock_table.set_fontsize = Mock()
+        mock_table.scale = Mock()
         mock_plt.subplots.return_value = (mock_fig, mock_ax)
         mock_ax.table.return_value = mock_table
+        mock_plt.title = Mock()
+        mock_plt.savefig = Mock()
+        mock_plt.close = Mock()
 
         with patch('tasacion_portal.generate_report.PROJECT_ROOT', temp_test_dir):
             create_metrics_table_plot()
@@ -196,16 +251,25 @@ class TestCreateFeatureImportanceComparison:
         shap_path.parent.mkdir(parents=True, exist_ok=True)
         shap_df.to_csv(shap_path, index=False)
 
+        # Create plots directory
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
         # Mock matplotlib
         mock_fig = Mock()
-        mock_axes = np.array([Mock(), Mock()])
+        mock_ax1 = Mock()
+        mock_ax2 = Mock()
+        mock_ax1.barh.return_value = Mock()
+        mock_ax2.pie.return_value = ([Mock()], [Mock()], [Mock()])
+        mock_axes = np.array([mock_ax1, mock_ax2])
         mock_plt.subplots.return_value = (mock_fig, mock_axes)
+        mock_plt.savefig = Mock()
+        mock_plt.close = Mock()
+        mock_plt.tight_layout = Mock()
 
         with patch('tasacion_portal.generate_report.PROJECT_ROOT', temp_test_dir):
             create_feature_importance_comparison()
 
-            plot_path = temp_test_dir / 'outputs' / 'plots' / 'feature_importance_comparison.png'
-            assert plot_path.exists()
+            assert mock_plt.savefig.called
 
     @patch('tasacion_portal.generate_report.plt')
     def test_feature_importance_creates_two_plots(self, mock_plt, temp_test_dir):
@@ -219,11 +283,19 @@ class TestCreateFeatureImportanceComparison:
         shap_path.parent.mkdir(parents=True, exist_ok=True)
         shap_df.to_csv(shap_path, index=False)
 
+        # Create plots directory
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
         mock_fig = Mock()
         mock_ax1 = Mock()
         mock_ax2 = Mock()
+        mock_ax1.barh.return_value = Mock()
+        mock_ax2.pie.return_value = ([Mock()], [Mock()], [Mock()])
         mock_axes = np.array([mock_ax1, mock_ax2])
         mock_plt.subplots.return_value = (mock_fig, mock_axes)
+        mock_plt.savefig = Mock()
+        mock_plt.close = Mock()
+        mock_plt.tight_layout = Mock()
 
         with patch('tasacion_portal.generate_report.PROJECT_ROOT', temp_test_dir):
             create_feature_importance_comparison()
@@ -386,10 +458,47 @@ class TestReportGenerationIntegration:
         shap_path.parent.mkdir(parents=True, exist_ok=True)
         shap_df.to_csv(shap_path, index=False)
 
+        # Create plots directory
+        (temp_test_dir / 'outputs' / 'plots').mkdir(parents=True, exist_ok=True)
+
         # Mock matplotlib
         mock_fig = Mock()
-        mock_axes = Mock()
-        mock_plt.subplots.return_value = (mock_fig, mock_axes)
+        mock_ax1 = Mock()
+        mock_ax2 = Mock()
+        mock_bar = Mock()
+        mock_bar.get_y.return_value = 0
+        mock_bar.get_height.return_value = 1
+        mock_ax1.barh.return_value = [mock_bar, mock_bar]
+        mock_ax2.barh.return_value = [mock_bar, mock_bar]
+        mock_ax2.pie.return_value = ([Mock()], [Mock()], [Mock()])
+
+        # Mock table to be subscriptable
+        mock_cell = Mock()
+        mock_cell.set_facecolor = Mock()
+        mock_cell.set_text_props = Mock()
+        mock_table = Mock()
+        mock_table.__getitem__ = Mock(return_value=mock_cell)
+        mock_table.auto_set_font_size = Mock()
+        mock_table.set_fontsize = Mock()
+        mock_table.scale = Mock()
+        mock_ax1.table.return_value = mock_table
+
+        # Mock subplots to return different configurations based on arguments
+        def mock_subplots(*args, **kwargs):
+            if len(args) >= 2:
+                if args[0] == 2 and args[1] == 2:
+                    # create_data_summary_plot: 2x2 grid
+                    return (mock_fig, np.array([[mock_ax1, mock_ax2], [mock_ax1, mock_ax2]]))
+                elif args[0] == 1 and args[1] == 2:
+                    # create_model_comparison_plot: 1x2 grid
+                    return (mock_fig, np.array([mock_ax1, mock_ax2]))
+            # Single plot (create_feature_importance_plot, create_metrics_table_plot)
+            return (mock_fig, mock_ax1)
+
+        mock_plt.subplots.side_effect = mock_subplots
+        mock_plt.savefig = Mock()
+        mock_plt.close = Mock()
+        mock_plt.tight_layout = Mock()
 
         with patch('tasacion_portal.generate_report.PROJECT_ROOT', temp_test_dir):
             # Create all plots
@@ -398,12 +507,8 @@ class TestReportGenerationIntegration:
             create_metrics_table_plot()
             create_feature_importance_comparison()
 
-            # Verify all plot files exist
-            plots_dir = temp_test_dir / 'outputs' / 'plots'
-            assert (plots_dir / 'data_summary_plot.png').exists()
-            assert (plots_dir / 'model_comparison_plot.png').exists()
-            assert (plots_dir / 'metrics_table_plot.png').exists()
-            assert (plots_dir / 'feature_importance_comparison.png').exists()
+            # Verify that savefig was called for all plots
+            assert mock_plt.savefig.call_count >= 4
 
     def test_report_handles_missing_plots_gracefully(self, temp_test_dir, sample_processed_data):
         """Test that report generation handles missing plot files"""

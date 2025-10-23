@@ -18,32 +18,34 @@ tests/
 
 ## Running Tests
 
+**Note:** This project uses `uv` for package management. Always use `uv run python -m pytest` to run tests.
+
 ### Run all tests
 ```bash
-pytest tests/
+uv run python -m pytest tests/
 ```
 
 ### Run specific test file
 ```bash
-pytest tests/test_scraper.py
-pytest tests/test_process_data.py
-pytest tests/test_train_models.py
+uv run python -m pytest tests/test_scraper.py
+uv run python -m pytest tests/test_process_data.py
+uv run python -m pytest tests/test_train_models.py
 ```
 
 ### Run tests with coverage
 ```bash
-pytest tests/ --cov=src/tasacion_portal --cov-report=html
+uv run python -m pytest tests/ --cov=src/tasacion_portal --cov-report=html
 ```
 
 ### Run tests with verbose output
 ```bash
-pytest tests/ -v
+uv run python -m pytest tests/ -v
 ```
 
 ### Run specific test class or function
 ```bash
-pytest tests/test_scraper.py::TestPortalInmobiliarioScraper::test_scraper_initialization
-pytest tests/test_process_data.py::TestProcessPrice
+uv run python -m pytest tests/test_scraper.py::TestPortalInmobiliarioScraper::test_scraper_initialization
+uv run python -m pytest tests/test_process_data.py::TestProcessPrice
 ```
 
 ## Test Coverage

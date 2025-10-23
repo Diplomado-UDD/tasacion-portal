@@ -78,13 +78,17 @@ class TestStep1ScrapeData:
 class TestStep2ProcessData:
     """Test suite for step2_process_data function"""
 
-    @patch('tasacion_portal.main.process_data.process_dataframe')
+    @patch('tasacion_portal.process_data.process_dataframe')
     def test_step2_processes_data(self, mock_process, temp_test_dir, sample_raw_data):
         """Test that step2 loads and processes data"""
         # Setup raw data
         raw_path = temp_test_dir / 'data' / 'raw' / 'data.csv'
         raw_path.parent.mkdir(parents=True, exist_ok=True)
         sample_raw_data.to_csv(raw_path, index=False)
+
+        # Create processed directory
+        processed_dir = temp_test_dir / 'data' / 'processed'
+        processed_dir.mkdir(parents=True, exist_ok=True)
 
         # Mock processing
         processed_df = pd.DataFrame({
@@ -108,8 +112,12 @@ class TestStep2ProcessData:
         raw_path.parent.mkdir(parents=True, exist_ok=True)
         sample_raw_data.to_csv(raw_path, index=False)
 
+        # Create processed directory
+        processed_dir = temp_test_dir / 'data' / 'processed'
+        processed_dir.mkdir(parents=True, exist_ok=True)
+
         with patch('tasacion_portal.main.PROJECT_ROOT', temp_test_dir):
-            with patch('tasacion_portal.main.process_data.process_dataframe') as mock_process:
+            with patch('tasacion_portal.process_data.process_dataframe') as mock_process:
                 processed_df = pd.DataFrame({
                     'price': [5000],
                     'bedrooms': [2]
@@ -126,14 +134,14 @@ class TestStep2ProcessData:
 class TestStep3TrainModels:
     """Test suite for step3_train_models function"""
 
-    @patch('tasacion_portal.main.train_models.main')
+    @patch('tasacion_portal.train_models.main')
     def test_step3_calls_train_models(self, mock_train_main):
         """Test that step3 calls train_models.main()"""
         step3_train_models()
 
         mock_train_main.assert_called_once()
 
-    @patch('tasacion_portal.main.train_models.main')
+    @patch('tasacion_portal.train_models.main')
     def test_step3_handles_exceptions(self, mock_train_main):
         """Test that step3 handles training exceptions"""
         mock_train_main.side_effect = Exception("Training error")
@@ -145,7 +153,7 @@ class TestStep3TrainModels:
 class TestStep4ExplainModel:
     """Test suite for step4_explain_model function"""
 
-    @patch('tasacion_portal.main.explain_model.main')
+    @patch('tasacion_portal.explain_model.main')
     def test_step4_calls_explain_model(self, mock_explain_main):
         """Test that step4 calls explain_model.main()"""
         step4_explain_model()
@@ -156,7 +164,7 @@ class TestStep4ExplainModel:
 class TestStep5GenerateReport:
     """Test suite for step5_generate_report function"""
 
-    @patch('tasacion_portal.main.generate_report.main')
+    @patch('tasacion_portal.generate_report.main')
     def test_step5_calls_generate_report(self, mock_report_main):
         """Test that step5 calls generate_report.main()"""
         step5_generate_report()
@@ -229,25 +237,29 @@ class TestMainPipeline:
 
     @patch('builtins.input', return_value='')
     @patch('tasacion_portal.main.step1_scrape_data')
-    def test_main_handles_keyboard_interrupt(self, mock_step1, mock_input):
+    @patch('tasacion_portal.main.step2_process_data')
+    def test_main_handles_keyboard_interrupt(self, mock_step2, mock_step1, mock_input, temp_test_dir):
         """Test that main handles KeyboardInterrupt"""
-        mock_step1.side_effect = KeyboardInterrupt()
+        mock_step2.side_effect = KeyboardInterrupt()
 
-        with pytest.raises(SystemExit) as exc_info:
-            main()
+        with patch('tasacion_portal.main.PROJECT_ROOT', temp_test_dir):
+            with pytest.raises(SystemExit) as exc_info:
+                main()
 
-        assert exc_info.value.code == 1
+            assert exc_info.value.code == 1
 
     @patch('builtins.input', return_value='')
     @patch('tasacion_portal.main.step1_scrape_data')
-    def test_main_handles_exceptions(self, mock_step1, mock_input):
+    @patch('tasacion_portal.main.step2_process_data')
+    def test_main_handles_exceptions(self, mock_step2, mock_step1, mock_input, temp_test_dir):
         """Test that main handles general exceptions"""
-        mock_step1.side_effect = Exception("Pipeline error")
+        mock_step2.side_effect = Exception("Pipeline error")
 
-        with pytest.raises(SystemExit) as exc_info:
-            main()
+        with patch('tasacion_portal.main.PROJECT_ROOT', temp_test_dir):
+            with pytest.raises(SystemExit) as exc_info:
+                main()
 
-        assert exc_info.value.code == 1
+            assert exc_info.value.code == 1
 
     @patch('builtins.input', return_value='')
     @patch('tasacion_portal.main.step1_scrape_data')
