@@ -6,7 +6,7 @@ Trains multiple regression models to predict property prices
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.linear_model import LinearRegression, Lasso, Ridge
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
@@ -22,6 +22,41 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # Fixed random seed for reproducibility
 RANDOM_SEED = 42
+
+# Enable/disable hyperparameter tuning
+ENABLE_TUNING = True  # Set to False for faster training with default params
+N_ITER = 20  # Number of random parameter combinations to try
+CV_FOLDS = 3  # Cross-validation folds for tuning
+
+
+def get_param_distributions():
+    """Define parameter distributions for hyperparameter tuning"""
+    return {
+        'Random Forest': {
+            'n_estimators': [50, 100, 150, 200],
+            'max_depth': [5, 10, 15, 20, None],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4]
+        },
+        'XGBoost': {
+            'n_estimators': [50, 100, 150, 200],
+            'max_depth': [3, 5, 7, 10],
+            'learning_rate': [0.01, 0.05, 0.1, 0.2],
+            'subsample': [0.6, 0.8, 1.0],
+            'colsample_bytree': [0.6, 0.8, 1.0]
+        },
+        'CatBoost': {
+            'n_estimators': [50, 100, 150, 200],
+            'max_depth': [4, 6, 8, 10],
+            'learning_rate': [0.01, 0.05, 0.1, 0.2]
+        },
+        'LightGBM': {
+            'n_estimators': [50, 100, 150, 200],
+            'max_depth': [4, 6, 8, 10, -1],
+            'learning_rate': [0.01, 0.05, 0.1, 0.2],
+            'num_leaves': [15, 31, 63, 127]
+        }
+    }
 
 
 def load_and_prepare_data(filename='data/processed/data.csv'):
@@ -97,8 +132,10 @@ def scale_features(X_train, X_val, X_test):
 
 
 def train_models(X_train, y_train):
-    """Train all regression models"""
+    """Train all regression models with optional hyperparameter tuning"""
     print("\nTraining models...")
+    if ENABLE_TUNING:
+        print(f"  Hyperparameter tuning enabled: {N_ITER} iterations, {CV_FOLDS}-fold CV")
 
     models = {
         'Linear Regression': LinearRegression(),
@@ -135,11 +172,34 @@ def train_models(X_train, y_train):
     }
 
     trained_models = {}
+    param_distributions = get_param_distributions()
 
     for name, model in models.items():
-        print(f"  Training {name}...")
-        model.fit(X_train, y_train)
-        trained_models[name] = model
+        print(f"  Training {name}...", end='')
+
+        # Use hyperparameter tuning for tree-based models if enabled
+        if ENABLE_TUNING and name in param_distributions:
+            print(f" (tuning {N_ITER} combinations)")
+
+            search = RandomizedSearchCV(
+                model,
+                param_distributions=param_distributions[name],
+                n_iter=N_ITER,
+                cv=CV_FOLDS,
+                scoring='neg_mean_squared_error',
+                random_state=RANDOM_SEED,
+                n_jobs=-1,
+                verbose=0
+            )
+            search.fit(X_train, y_train)
+            trained_models[name] = search.best_estimator_
+
+            # Print best parameters found
+            print(f"    Best params: {search.best_params_}")
+        else:
+            print()
+            model.fit(X_train, y_train)
+            trained_models[name] = model
 
     print("✓ All models trained")
 

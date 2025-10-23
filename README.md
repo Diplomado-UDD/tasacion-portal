@@ -112,6 +112,7 @@ uv run python -m tasacion_portal.generate_report
 - Extracts: price, location, bedrooms, bathrooms, surface area, URL
 - Handles range values (e.g., "2 a 4 dormitorios" → 3.0)
 - Cleans text-based numeric fields
+- **Outlier removal** using IQR method (configurable)
 - Respectful scraping with 2-second delays
 
 ### Machine Learning Models
@@ -129,6 +130,8 @@ Seven regression models trained and compared:
 **Evaluation Metrics**: RMSE, MAE, R², MAPE
 
 **Data Split**: 70% train, 15% validation, 15% test (reproducible with seed=42)
+
+**Hyperparameter Tuning**: Automatic optimization using RandomizedSearchCV for tree-based models (Random Forest, XGBoost, CatBoost, LightGBM)
 
 ### Model Interpretability
 
@@ -252,6 +255,11 @@ Edit `src/tasacion_portal/train_models.py`:
 # Change random seed
 RANDOM_SEED = 123
 
+# Enable/disable hyperparameter tuning
+ENABLE_TUNING = True  # Set to False for faster training
+N_ITER = 20  # Number of parameter combinations to try
+CV_FOLDS = 3  # Cross-validation folds
+
 # Adjust data split
 X_train, X_val, X_test, y_train, y_val, y_test = split_data(
     X, y, train_size=0.8, val_size=0.1, test_size=0.1
@@ -259,6 +267,21 @@ X_train, X_val, X_test, y_train, y_val, y_test = split_data(
 
 # Modify model hyperparameters
 RandomForestRegressor(n_estimators=200, max_depth=15, ...)
+```
+
+### Adjust Outlier Removal
+
+Edit `src/tasacion_portal/process_data.py`:
+
+```python
+# Change outlier removal method and threshold
+df = remove_outliers(df, outlier_columns, method='iqr', threshold=1.5)
+
+# Or use Z-score method instead
+df = remove_outliers(df, outlier_columns, method='zscore', threshold=3)
+
+# Disable outlier removal by commenting out the line
+# df = remove_outliers(df, outlier_columns, method='iqr', threshold=1.5)
 ```
 
 ## Results Summary

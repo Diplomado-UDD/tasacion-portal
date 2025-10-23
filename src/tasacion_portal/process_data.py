@@ -4,6 +4,7 @@ Cleans and processes the scraped property data from data.csv
 """
 
 import pandas as pd
+import numpy as np
 import re
 from pathlib import Path
 
@@ -67,6 +68,58 @@ def process_surface(surface_str: str) -> float:
     return process_range_with_mean(cleaned)
 
 
+def remove_outliers(df: pd.DataFrame, columns: list, method='iqr', threshold=1.5) -> pd.DataFrame:
+    """
+    Remove outliers from specified columns using IQR or Z-score method.
+
+    Args:
+        df: DataFrame to clean
+        columns: List of column names to check for outliers
+        method: 'iqr' (Interquartile Range) or 'zscore'
+        threshold: For IQR: multiplier (default 1.5), For Z-score: number of std devs (default 3)
+
+    Returns:
+        DataFrame with outliers removed
+    """
+    df_clean = df.copy()
+    initial_rows = len(df_clean)
+
+    for col in columns:
+        if col not in df_clean.columns:
+            continue
+
+        # Only process numeric columns with non-null values
+        valid_data = df_clean[col].dropna()
+        if len(valid_data) == 0:
+            continue
+
+        if method == 'iqr':
+            Q1 = valid_data.quantile(0.25)
+            Q3 = valid_data.quantile(0.75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - threshold * IQR
+            upper_bound = Q3 + threshold * IQR
+
+            # Keep rows within bounds or with null values
+            mask = (df_clean[col].isna()) | ((df_clean[col] >= lower_bound) & (df_clean[col] <= upper_bound))
+            df_clean = df_clean[mask]
+
+        elif method == 'zscore':
+            mean = valid_data.mean()
+            std = valid_data.std()
+            z_scores = np.abs((df_clean[col] - mean) / std)
+
+            # Keep rows within threshold or with null values
+            mask = (df_clean[col].isna()) | (z_scores <= threshold)
+            df_clean = df_clean[mask]
+
+    removed_rows = initial_rows - len(df_clean)
+    if removed_rows > 0:
+        print(f"  Removed {removed_rows} outliers ({removed_rows/initial_rows*100:.1f}% of data)")
+
+    return df_clean
+
+
 def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """Process and clean the dataframe"""
     print("\nProcessing data...")
@@ -96,6 +149,11 @@ def process_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     if 'surface_useful' in df.columns:
         print("- Processing surface_useful column")
         df['surface_useful'] = df['surface_useful'].apply(process_surface)
+
+    # Remove outliers from numeric columns
+    print("- Removing outliers using IQR method...")
+    outlier_columns = ['price', 'bedrooms', 'bathrooms', 'surface_useful']
+    df = remove_outliers(df, outlier_columns, method='iqr', threshold=1.5)
 
     print("Processing complete!")
     print(f"Final shape: {df.shape}")
