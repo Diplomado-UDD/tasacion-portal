@@ -336,10 +336,10 @@ df = remove_outliers(df, outlier_columns, method='zscore', threshold=3)
 
 Based on the default configuration:
 
-- **Best Model**: Linear Regression
-- **R² Score**: 0.62 (explains 62% of price variance)
-- **RMSE**: ~4,858 UF
-- **MAPE**: ~19.1%
+- **Best Model**: CatBoost
+- **R² Score**: 0.63 (explains 63% of price variance)
+- **RMSE**: ~33,825 UF
+- **MAPE**: ~16.8%
 - **Most Important Feature**: Surface area (70% importance)
 
 ## Notes
